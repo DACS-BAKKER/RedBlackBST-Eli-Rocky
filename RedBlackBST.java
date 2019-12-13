@@ -1,3 +1,9 @@
+/* *****************************************************************************
+    Name: Rocky and Eli
+    Date: 12-11-19
+    Description: a left leaning red black binary search tree implementation
+ **************************************************************************** */
+
 public class RedBlackBST {
 
     public Node root;

@@ -1,5 +1,8 @@
 /* *****************************************************************************
- SCALE based on height, fills whole screen, because it is balanced
+    Name: Rocky and Eli
+    Date: 12-11-19
+    Description: graphics for the red black bst, the program
+    periodically adds a random number to the bst and draws it.
  **************************************************************************** */
 
 import javax.swing.JFrame;
@@ -19,6 +22,7 @@ import java.util.Collections;
 public class RedBlackBSTGraphics {
 
     private static RedBlackBST BST = new RedBlackBST();
+    //window dimensions
     private static int width = 1200;
     private static int height = 800;
 
@@ -46,18 +50,13 @@ class BSTPanel extends JPanel implements ActionListener {
 
     private RedBlackBST BST;
     private Timer animator;
-    //animation delay
-    private int delay = 2000;
-    //node diameter
+    //animation delay, the period of time between each random inserton and graphics update
+    private int delay = 1000;
+    //node diameter for the graphics
     private int nodeDiam = 60;
-    //vertical gap between nodes
-    private int vertGap = 50 + nodeDiam;
-    //height of tree
     private int treeHeight;
-    //width of tree
     private int treeWidth;
-    //length of the border;
-    //private int border = 50;
+    //for making random insertions
     private Integer[] randomNums = new Integer[256];
     private int index = 0;
 
@@ -66,15 +65,17 @@ class BSTPanel extends JPanel implements ActionListener {
         this.BST = BST;
         this.setSize(width, height);
         animator = new Timer(delay, this);
+
+        //This is for non-repeating keys
         for(int i = 0; i<randomNums.length; i++){
             randomNums[i] = i;
         }
         Collections.shuffle(Arrays.asList(randomNums));
         BST.insert(randomNums[0]);
+
+
         treeHeight = getTreeHeight();
-        System.out.println(treeHeight);
         treeWidth = getTreeWidth();
-        System.out.println(treeWidth);
         animator.start();
     }
 
@@ -83,7 +84,7 @@ class BSTPanel extends JPanel implements ActionListener {
         paintTree(g, BST.root, 1, 1);
     }
 
-    //paints a node at x,y
+    //paints a node horizontally centered at x whose top is at y
     public void paintNode(Graphics g, RedBlackBST.Node Node, int x, int y){
         if(Node.isRed){
             g.setColor(Color.RED);
@@ -94,11 +95,18 @@ class BSTPanel extends JPanel implements ActionListener {
         drawCenteredString(g, Integer.toString(Node.stuff), new Rectangle(x - nodeDiam/2, y, nodeDiam, nodeDiam), new Font("Courier", Font.PLAIN, nodeDiam/2));
     }
 
+    //Recursively paint the tree with connecting lines
     public void paintTree(Graphics g, RedBlackBST.Node current, int level, int nodeNum){
         if(current == null){
             return;
         } else {
-            int yIncrement = (getHeight() - 2 * nodeDiam) / (treeHeight - 1);
+            int yIncrement;
+            //special case to prevent dividng by zero
+            if(treeHeight == 1){
+                yIncrement = (getHeight() - 2 * nodeDiam);
+            } else {
+                yIncrement = (getHeight() - 2 * nodeDiam) / (treeHeight - 1);
+            }
             int numOfNodes = (int) Math.pow(2, level - 1);
             int xIncrement = (getWidth() / (numOfNodes + 1));
             int x = xIncrement * nodeNum;
@@ -107,13 +115,18 @@ class BSTPanel extends JPanel implements ActionListener {
             int nextNumOfNodes = (int) Math.pow(2, level);
             int nextXIncrement = (getWidth() / (nextNumOfNodes + 1));
 
+            //paint current node
             paintNode(g, current, x, y);
+            //paint left node
             paintTree(g, current.leftNode, level + 1, (nodeNum * 2) - 1);
+            //paint connecting line to the left node
             if(current.leftNode!=null) {
                 g.setColor(Color.BLACK);
                 g.drawLine(x, y + nodeDiam, nextXIncrement * (nodeNum * 2 - 1), y + yIncrement);
             }
+            //paint right node
             paintTree(g, current.rightNode, level + 1, nodeNum * 2);
+            //paint connecting line to the right node
             if(current.rightNode!=null) {
                 g.setColor(Color.BLACK);
                 g.drawLine(x, y + nodeDiam, nextXIncrement * nodeNum * 2, y + yIncrement);
@@ -121,13 +134,15 @@ class BSTPanel extends JPanel implements ActionListener {
         }
     }
 
+    //This is triggered periodically by the animator
     public void actionPerformed(ActionEvent e) {
-        //add a random element to bst
+        //add a random non-repeating element to bst
         BST.insert(randomNums[index]);
         index++;
         treeHeight = getTreeHeight();
         treeWidth = getTreeWidth();
-        nodeDiam = nodeDiam  - 5/treeHeight;
+        //change diameter based on tree height to prevent overlapping nodes
+        nodeDiam = 60  - (5 * (treeHeight-1));
         repaint();
     }
 
@@ -145,7 +160,7 @@ class BSTPanel extends JPanel implements ActionListener {
         g.drawString(text, x, y);
     }
 
-    //returns max height of the tree
+    //Returns the VISUAL height of the tree for graphics purposes, treats reds and blacks as the same
     private int getTreeHeight(){
         return getTreeHeightHelper(BST.root, 0);
     }
@@ -164,7 +179,7 @@ class BSTPanel extends JPanel implements ActionListener {
         }
     }
 
-    //returns max width of the tree
+    //returns the width of the tree for graphics purposes
     private int getTreeWidth(){
         int leftWidth = 0;
         int rightWidth = 0;
